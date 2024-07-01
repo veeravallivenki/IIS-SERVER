@@ -18,6 +18,11 @@ pipeline {
                 script {
                     if (isUnix()) {
                         sh '''
+                        if ! command -v mono &> /dev/null; then
+                            echo "Mono could not be found. Installing Mono..."
+                            sudo apt-get update
+                            sudo apt-get install -y mono-complete
+                        fi
                         if ! command -v nuget &> /dev/null; then
                             echo "NuGet could not be found. Installing NuGet..."
                             mkdir -p nuget
@@ -97,3 +102,4 @@ pipeline {
         }
     }
 }
+
