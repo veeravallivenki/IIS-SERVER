@@ -2,7 +2,7 @@ pipeline {
     agent any
 
     environment {
-        DOTNET_ROOT = tool name: 'dotnet-sdk', type: 'com.cloudbees.jenkins.plugins.customtools.CustomTool'
+    
         IIS_SERVER = 'http://103.99.10.72'
         SITE_NAME = 'dotnetapp'
     }
