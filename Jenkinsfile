@@ -73,21 +73,26 @@ pipeline {
         stage('Deploy to IIS') {
             steps {
                 script {
-                    // Windows-specific steps to deploy to IIS
-                    if (isUnix()) {
-                        error('Deployment to IIS is only supported on Windows nodes.')
-                    } else {
-                        bat """
+                    def remote = [:]
+                    remote.name = 'IIS Server'
+                    remote.user = 'DESKTOP-8I53PQC'
+                    remote.password = 'Venki@293'
+                    remote.allowAnyHosts = true
+
+                    // Transfer the artifacts to the IIS server
+                    sshPut remote: remote, from: 'publish/', into: '/path/on/iis/server/'
+
+                    // Execute commands on the IIS server to deploy the application
+                    sshCommand remote: remote, command: '''
                         # Stop the application pool
                         appcmd stop apppool /apppool.name:dotnetapp
 
                         # Copy the published files to the IIS directory
-                        xcopy /s /y /i publish\\* "D:\\dotnetapp"
+                        xcopy /s /y /i /path/on/iis/server/* "D:\\dotnetapp"
 
                         # Start the application pool
                         appcmd start apppool /apppool.name:dotnetapp
-                        """
-                    }
+                    '''
                 }
             }
         }
@@ -102,4 +107,3 @@ pipeline {
         }
     }
 }
-
