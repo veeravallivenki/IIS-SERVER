@@ -3,6 +3,9 @@ pipeline {
 
     environment {
         // Define any environment variables here
+        BUILD_CONFIGURATION = 'Release'
+        SOLUTION = '**/*.sln'
+        BUILD_PLATFORM = 'Any CPU'
     }
 
     stages {
