@@ -33,3 +33,5 @@ pipeline {
                 archiveArtifacts artifacts: 'App_Package/**/*.zip', allowEmptyArchive: true
             }
         }
+    }
+}
