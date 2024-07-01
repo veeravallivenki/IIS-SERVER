@@ -1,8 +1,5 @@
 pipeline {
-    agent {
-        label 'windows' // Ensure this label is assigned to a Windows node
-    }
-
+    agent any
     environment {
         BUILD_CONFIGURATION = 'Release'
         SOLUTION = '**/*.sln'
