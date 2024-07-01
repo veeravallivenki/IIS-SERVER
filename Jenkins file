@@ -1,6 +1,8 @@
 pipeline {
-    agent any
-           label 'windows' // Ensure this label is assigned to a Windows node
+    agent {
+        label 'windows' // Ensure this label is assigned to a Windows node
+    }
+
     environment {
         BUILD_CONFIGURATION = 'Release'
         SOLUTION = '**/*.sln'
@@ -32,32 +34,21 @@ pipeline {
             }
         }
 
-        stage('Deploy') {
+        stage('Deploy to IIS') {
             steps {
                 script {
-                    withCredentials([usernamePassword(credentialsId: 'dotnetuser', passwordVariable: 'CREDENTIAL_PASSWORD', usernameVariable: 'CREDENTIAL_USERNAME')]) {
-                    powershell '''
-                    
-                    $credentials = New-Object System.Management.Automation.PSCredential($env:CREDENTIAL_USERNAME, (ConvertTo-SecureString $env:CREDENTIAL_PASSWORD -AsPlainText -Force))
+                    // Ensure Web Deploy is installed and accessible
+                    bat '''
+                    set packagePath=%WORKSPACE%\\App_Package\\*.zip
+                    set deployUser=DESKTOP-8I53PQC
+                    set deployPassword=Venki@293
+                    set computerName=https://YourIISServer:8172/MsDeploy.axd?site=%siteName%
 
-                    
-                    New-PSDrive -Name X -PSProvider FileSystem -Root "\\\\DESKTOP-8I53PQC\\dotnetapp" -Persist -Credential $credentials
-
-                    
-                    Copy-Item -Path '.\\publish\\*' -Destination 'X:\' -Force
-
-                    
-                    Remove-PSDrive -Name X
+                    msdeploy.exe -verb:sync -source:package=%packagePath% -dest:auto,computerName=%computerName%,userName=%deployUser%,password=%deployPassword% -setParam:name="IIS Web Application Name",value="%siteName%"
                     '''
-                }
                 }
             }
         }
     }
-
-    post {
-        success {
-            echo 'Build, test, and publish successful!'
-        }
-    }
 }
+
