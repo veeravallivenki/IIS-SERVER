@@ -1,6 +1,6 @@
 pipeline {
     agent {
-        any
+        label 'windows' // Ensure this label is assigned to a Windows node
     }
 
     environment {
