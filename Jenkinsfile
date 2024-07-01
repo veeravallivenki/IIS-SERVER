@@ -61,7 +61,7 @@ pipeline {
                         appcmd stop apppool /apppool.name:dotnetapp
 
                         # Copy the published files to the IIS directory
-                        xcopy /s /y /i publish\\* "D:\dotnetapp"
+                        xcopy /s /y /i publish\\* "D:\\dotnetapp"
 
                         # Start the application pool
                         appcmd start apppool /apppool.name:dotnetapp
