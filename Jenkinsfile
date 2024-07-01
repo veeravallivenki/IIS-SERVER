@@ -12,13 +12,6 @@ pipeline {
                 checkout scm
             }
         }
-         stage('Restore') {
-            steps {
-                script {
-                    def dotnetHome = env.DOTNET_ROOT
-                    sh "${dotnetHome}/dotnet restore"
-                }
-            }
-        }
+       
     }
 }
