@@ -20,14 +20,5 @@ pipeline {
                 }
             }
         }
-
-        stage('Build') {
-            steps {
-                script {
-                    def dotnetHome = env.DOTNET_ROOT
-                    sh "${dotnetHome}/dotnet build --configuration Release"
-                }
-            }
-         }
-      }
-   }
+    }
+}
