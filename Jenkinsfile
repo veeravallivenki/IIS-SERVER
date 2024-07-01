@@ -1,52 +1,84 @@
 pipeline {
-    agent {
-        label 'windows'
-    }
+    agent any
+
     environment {
-        BUILD_CONFIGURATION = 'Release'
-        SOLUTION = '**/*.sln'
-        BUILD_PLATFORM = 'Any CPU'
+        // Define any environment variables here
     }
 
     stages {
+        stage('Checkout SCM') {
+            steps {
+                checkout scm
+            }
+        }
+        
         stage('Restore NuGet Packages') {
             steps {
                 script {
-                    // Ensure the right version of NuGet is installed
-                    bat 'nuget restore ${env.SOLUTION}'
+                    if (isUnix()) {
+                        sh 'nuget restore'
+                    } else {
+                        bat 'nuget restore'
+                    }
                 }
             }
         }
-
+        
         stage('Build Solution') {
             steps {
                 script {
-                    // Use MSBuild to build the solution
-                    bat "msbuild ${env.SOLUTION} /p:Configuration=${env.BUILD_CONFIGURATION} /p:Platform=${env.BUILD_PLATFORM} /p:DeployOnBuild=true /p:WebPublishMethod=Package /p:PackageAsSingleFile=true /p:SkipInvalidConfigurations=true /p:PackageLocation=${env.WORKSPACE}\\App_Package"
+                    if (isUnix()) {
+                        sh 'msbuild /p:Configuration=Release'
+                    } else {
+                        bat 'msbuild /p:Configuration=Release'
+                    }
                 }
             }
         }
-
-        stage('Publish Artifact') {
+        
+        stage('Publish Artifacts') {
             steps {
-                archiveArtifacts artifacts: 'App_Package/**/*.zip', allowEmptyArchive: true
+                script {
+                    if (isUnix()) {
+                        sh 'msbuild /t:Publish /p:Configuration=Release /p:OutputPath=./publish'
+                    } else {
+                        bat 'msbuild /t:Publish /p:Configuration=Release /p:OutputPath=./publish'
+                    }
+                }
+                archiveArtifacts artifacts: 'publish/**', allowEmptyArchive: true
+            }
+        }
+
+        stage('Deploy to IIS') {
+            steps {
+                script {
+                    // Windows-specific steps to deploy to IIS
+                    if (isUnix()) {
+                        error('Deployment to IIS is only supported on Windows nodes.')
+                    } else {
+                        bat """
+                        # Stop the application pool
+                        appcmd stop apppool /apppool.name:dotnetapp
+
+                        # Copy the published files to the IIS directory
+                        xcopy /s /y /i publish\\* "D:\dotnetapp"
+
+                        # Start the application pool
+                        appcmd start apppool /apppool.name:dotnetapp
+                        """
+                    }
+                }
             }
         }
     }
-}
 
-echo "Restoring NuGet Packages"
-nuget restore
-
-if (isUnix()) {
-    sh '''
-    echo "Restoring NuGet Packages"
-    nuget restore
-    '''
-} else {
-    bat '''
-    echo Restoring NuGet Packages
-    nuget restore
-    '''
+    post {
+        success {
+            echo 'Deployment completed successfully!'
+        }
+        failure {
+            echo 'Deployment failed!'
+        }
+    }
 }
 
