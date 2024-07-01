@@ -1,56 +1,59 @@
 pipeline {
     agent any
-
-    environment {
     
-        IIS_SERVER = 'http://103.99.10.72'
-        SITE_NAME = 'dotnetapp'
+    environment {
+        nugetPath = tool name: 'NuGet', type: 'nuget'
+        dotnetPath = tool name: 'dotnet', type: 'sdk'
+        msbuildPath = 'C:\\Program Files (x86)\\Microsoft Visual Studio\\2019\\BuildTools\\MSBuild\\Current\\Bin\\MSBuild.exe'
+        iisWebSiteName = '103.99.10.72' // Replace with your IIS website name
+        iisAppPoolName = 'dotnetapp' // Replace with your IIS app pool name
+        publishDir = 'D:\\dotnetapp' // Replace with your IIS publish directory
     }
-
+    
     stages {
-        stage('Checkout') {
-            steps {
-                checkout scm
-            }
-        }
-
-        stage('Restore and Build') {
+        stage('Restore NuGet Packages') {
             steps {
                 script {
-                    def dotnetHome = env.DOTNET_ROOT
-                    sh "${dotnetHome}/dotnet restore"
-                    sh "${dotnetHome}/dotnet publish --configuration Release --output ./publish"
+                    def nuget = bat(returnStdout: true, script: "where nuget.exe").trim()
+                    if (nuget == "") {
+                        echo 'NuGet not found, installing...'
+                        def nugetPath = tool name: 'NuGet', type: 'nuget'
+                        bat "${nugetPath} restore YourSolution.sln"
+                    } else {
+                        bat "nuget restore YourSolution.sln"
+                    }
                 }
             }
         }
-
+        
+        stage('Build Solution') {
+            steps {
+                script {
+                    bat "${dotnetPath} build YourSolution.sln"
+                }
+            }
+        }
+        
+        stage('Publish Artifacts') {
+            steps {
+                script {
+                    bat "${dotnetPath} publish YourProject.csproj --configuration Release --output ${env.publishDir}"
+                }
+            }
+        }
+        
         stage('Deploy to IIS') {
             steps {
                 script {
-                    def iisServer = env.IIS_SERVER
-                    def siteName = env.SITE_NAME
-                    def publishDir = './publish'
-                    
-                    // Clear existing site content
-                    bat "appcmd stop site /site.name:\"${siteName}\""
-                    bat "appcmd delete app /app.name:\"${siteName}\""
-                    
-                    // Publish to IIS
-                    bat "xcopy /s \"${publishDir}\" \"${iisServer}\\${siteName}\""
-                    
-                    // Start the site
-                    bat "appcmd start site /site.name:\"${siteName}\""
+                    bat "msdeploy -verb:sync -source:contentPath=${env.publishDir} -dest:contentPath=C:\\inetpub\\wwwroot\\${env.iisWebSiteName},computerName=localhost"
                 }
             }
         }
     }
-
+    
     post {
-        success {
-            echo 'Deployment successful!'
-        }
-        failure {
-            echo 'Deployment failed!'
+        always {
+            // Clean up steps if needed
         }
     }
 }
