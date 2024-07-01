@@ -1,3 +1,4 @@
+
 pipeline {
     agent any
 
@@ -7,9 +8,11 @@ pipeline {
                 checkout scm
             }
         }
-      stage('build') {
-        sh "${dotnetPath}/dotnet build MySolution.sln"
-       }
+       stage('build') {
+          steps {
+               sh "${dotnetPath}/dotnet build MySolution.sln"
+        }
+      }
         stage('Publish') {
             steps {
                 script {
