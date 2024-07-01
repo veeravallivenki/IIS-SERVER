@@ -3,7 +3,7 @@ pipeline {
 
     environment {
         // Define any environment variables here
-        PATH = "$PATH:/path/to/nuget"
+        PATH = "$PATH:$WORKSPACE/nuget"
     }
 
     stages {
@@ -20,18 +20,20 @@ pipeline {
                         sh '''
                         if ! command -v nuget &> /dev/null; then
                             echo "NuGet could not be found. Installing NuGet..."
-                            sudo apt-get update
-                            sudo apt-get install -y nuget
+                            mkdir -p nuget
+                            curl -o nuget/nuget.exe https://dist.nuget.org/win-x86-commandline/latest/nuget.exe
+                            chmod +x nuget/nuget.exe
                         fi
-                        nuget restore
+                        mono nuget/nuget.exe restore
                         '''
                     } else {
                         bat '''
-                        if not exist "C:\\path\\to\\nuget.exe" (
-                            echo NuGet could not be found. Installing NuGet...
-                            powershell -command "Invoke-WebRequest -Uri https://dist.nuget.org/win-x86-commandline/latest/nuget.exe -OutFile C:\\path\\to\\nuget.exe"
+                        if not exist "nuget\\nuget.exe" (
+                            echo "NuGet could not be found. Installing NuGet..."
+                            mkdir nuget
+                            powershell -command "Invoke-WebRequest -Uri https://dist.nuget.org/win-x86-commandline/latest/nuget.exe -OutFile nuget\\nuget.exe"
                         )
-                        C:\\path\\to\\nuget.exe restore
+                        nuget\\nuget.exe restore
                         '''
                     }
                 }
@@ -95,4 +97,3 @@ pipeline {
         }
     }
 }
-
