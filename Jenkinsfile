@@ -28,5 +28,6 @@ pipeline {
                     sh "${dotnetHome}/dotnet build --configuration Release"
                 }
             }
-    }
-}
+         }
+      }
+   }
