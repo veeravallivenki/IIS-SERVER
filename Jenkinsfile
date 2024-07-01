@@ -3,9 +3,7 @@ pipeline {
 
     environment {
         // Define any environment variables here
-        BUILD_CONFIGURATION = 'Release'
-        SOLUTION = '**/*.sln'
-        BUILD_PLATFORM = 'Any CPU'
+        PATH = "$PATH:/path/to/nuget"
     }
 
     stages {
@@ -14,19 +12,32 @@ pipeline {
                 checkout scm
             }
         }
-        
+
         stage('Restore NuGet Packages') {
             steps {
                 script {
                     if (isUnix()) {
-                        sh 'nuget restore'
+                        sh '''
+                        if ! command -v nuget &> /dev/null; then
+                            echo "NuGet could not be found. Installing NuGet..."
+                            sudo apt-get update
+                            sudo apt-get install -y nuget
+                        fi
+                        nuget restore
+                        '''
                     } else {
-                        bat 'nuget restore'
+                        bat '''
+                        if not exist "C:\\path\\to\\nuget.exe" (
+                            echo NuGet could not be found. Installing NuGet...
+                            powershell -command "Invoke-WebRequest -Uri https://dist.nuget.org/win-x86-commandline/latest/nuget.exe -OutFile C:\\path\\to\\nuget.exe"
+                        )
+                        C:\\path\\to\\nuget.exe restore
+                        '''
                     }
                 }
             }
         }
-        
+
         stage('Build Solution') {
             steps {
                 script {
@@ -38,7 +49,7 @@ pipeline {
                 }
             }
         }
-        
+
         stage('Publish Artifacts') {
             steps {
                 script {
