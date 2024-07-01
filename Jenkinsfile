@@ -1,5 +1,7 @@
 pipeline {
-    agent any
+    agent {
+        label 'windows'
+    }
     environment {
         BUILD_CONFIGURATION = 'Release'
         SOLUTION = '**/*.sln'
