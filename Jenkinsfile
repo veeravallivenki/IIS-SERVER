@@ -34,3 +34,19 @@ pipeline {
         }
     }
 }
+
+echo "Restoring NuGet Packages"
+nuget restore
+
+if (isUnix()) {
+    sh '''
+    echo "Restoring NuGet Packages"
+    nuget restore
+    '''
+} else {
+    bat '''
+    echo Restoring NuGet Packages
+    nuget restore
+    '''
+}
+
