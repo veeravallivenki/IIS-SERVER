@@ -2,46 +2,36 @@ pipeline {
     agent any
 
     environment {
-       DOTNET_CLI_HOME = "C:\\Program Files\\dotnet"
+        BUILD_CONFIGURATION = 'Release'
+        SOLUTION = '**/*.sln'
+        BUILD_PLATFORM = 'Any CPU'
     }
 
     stages {
-        stage('Checkout') {
-            steps {
-                checkout scm
-            }
-        }
-
-        stage('Build') {
+        stage('Restore NuGet Packages') {
             steps {
                 script {
-                    // Restoring dependencies
-                    //bat "cd ${DOTNET_CLI_HOME} && dotnet restore"
-                    bat "dotnet restore"
-
-                    // Building the application
-                    bat "dotnet build --configuration Release"
+                    // Ensure the right version of NuGet is installed
+                    bat 'nuget restore ${env.SOLUTION}'
                 }
             }
         }
 
-        stage('Test') {
+        stage('Build Solution') {
             steps {
                 script {
-                    // Running tests
-                    bat "dotnet test --no-restore --configuration Release"
+                    // Use MSBuild to build the solution
+                    bat "msbuild ${env.SOLUTION} /p:Configuration=${env.BUILD_CONFIGURATION} /p:Platform=${env.BUILD_PLATFORM} /p:DeployOnBuild=true /p:WebPublishMethod=Package /p:PackageAsSingleFile=true /p:SkipInvalidConfigurations=true /p:PackageLocation=${env.WORKSPACE}\\App_Package"
                 }
             }
         }
 
-        stage('Publish') {
+        stage('Publish Artifact') {
             steps {
-                script {
-                    // Publishing the application
-                    bat "dotnet publish --no-restore --configuration Release --output .\\publish"
-                }
+                archiveArtifacts artifacts: 'App_Package/**/*.zip', allowEmptyArchive: true
             }
         }
+
         stage('Deploy') {
             steps {
                 script {
