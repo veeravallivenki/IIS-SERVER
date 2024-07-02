@@ -1,7 +1,5 @@
 pipeline {
-    agent {
-        label 'windows'
-    }
+    agent any
     environment {
         DOTNET_VERSION = '8.0.302' // Specify the .NET SDK version you need
     }
