@@ -13,7 +13,7 @@ pipeline {
          stage('Build') {
             steps {
                 script { 
-                   dotnetBuild project: 'beststore.csproj', sdk: '.net sdk'
+                   dotnetBuild sdk: '.net sdk'
                 }
             }
         }
