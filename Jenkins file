@@ -13,7 +13,16 @@ pipeline {
          stage('Build') {
             steps {
                 script { 
-                    dotnetBuild sdk: '.net sdk'
+                   dotnetBuild project: 'beststore.csproj', sdk: '.net sdk'
                 }
             }
         }
+        stage('Publish') {
+            steps {
+                script {  
+                  dotnetPublish sdk: '.net sdk', selfContained: false
+                }
+            }
+        }
+    }
+}
