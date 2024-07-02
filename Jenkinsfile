@@ -8,65 +8,44 @@ pipeline {
     }
 
     stages {
-        stage('Checkout') {
-            steps {
-                // Checkout the code from the repository
-                checkout scm
-            }
-        }
-        stage('Install .NET SDK') {
-            steps {
-                // Install the specified .NET SDK version if it's not already installed
-                script {
-                    def dotnetSdkInstalled = sh(script: 'dotnet --version', returnStatus: true) == 0
-                    if (!dotnetSdkInstalled) {
-                        sh "wget https://dot.net/v1/dotnet-install.sh -O dotnet-install.sh"
-                        sh "chmod +x dotnet-install.sh"
-                        sh "./dotnet-install.sh --version ${env.DOTNET_VERSION}"
-                        env.PATH = "${env.WORKSPACE}/.dotnet:${env.PATH}"
-                        sh "export PATH=${env.WORKSPACE}/.dotnet:${env.PATH}"
-                    }
-                }
-                // Verify .NET SDK installation
-                sh 'dotnet --version'
-            }
-        }
-        stage('Restore') {
-            steps {
-                // Restore dependencies
-                sh 'dotnet restore'
-            }
-        }
         stage('Build') {
             steps {
-                // Build the application
-                sh 'dotnet build --configuration Release'
-            }
-        }
-        stage('Test') {
-            steps {
-                // Run unit tests
-                sh 'dotnet test --configuration Release'
+                script {
+                    
+                    bat "dotnet restore"
+                    bat "dotnet build --configuration Release"
+                }
             }
         }
         stage('Publish') {
             steps {
-                // Publish the application
-                sh 'dotnet publish --configuration Release --output ./publish'
+                script {
+                    
+                    bat "dotnet publish --no-restore --configuration Release --output .\\publish"
+                }
             }
         }
-        stage('Archive Artifacts') {
+        stage('Deploy') {
             steps {
-                // Archive the published artifacts
-                archiveArtifacts artifacts: 'publish/**', allowEmptyArchive: true
+                script {
+                    withCredentials([usernamePassword(credentialsId: 'coreuser', passwordVariable: 'CREDENTIAL_PASSWORD', usernameVariable: 'CREDENTIAL_USERNAME')]) {
+                    powershell '''
+                    
+                    $credentials = New-Object System.Management.Automation.PSCredential($env:CREDENTIAL_USERNAME, (ConvertTo-SecureString $env:CREDENTIAL_PASSWORD -AsPlainText -Force))
+
+                    
+                    New-PSDrive -Name X -PSProvider FileSystem -Root "\\\\DESKTOP-8I53PQC\\coreapp" -Persist -Credential $credentials
+
+                    
+                    Copy-Item -Path '.\\publish\\*' -Destination 'X:\' -Force
+
+                    
+                    Remove-PSDrive -Name X
+                    '''
+                   }
+                }
             }
         }
     }
-    post {
-        always {
-            // Clean up workspace
-            cleanWs()
-        }
-    }
-}
+
 
