@@ -22,8 +22,11 @@ pipeline {
                         sh "chmod +x dotnet-install.sh"
                         sh "./dotnet-install.sh --version ${env.DOTNET_VERSION}"
                         env.PATH = "${env.WORKSPACE}/.dotnet:${env.PATH}"
+                        sh "export PATH=${env.WORKSPACE}/.dotnet:${env.PATH}"
                     }
                 }
+                // Verify .NET SDK installation
+                sh 'dotnet --version'
             }
         }
         stage('Restore') {
@@ -57,5 +60,11 @@ pipeline {
             }
         }
     }
-    
+    post {
+        always {
+            // Clean up workspace
+            cleanWs()
+        }
+    }
 }
+
