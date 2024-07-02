@@ -34,12 +34,6 @@ pipeline {
                
             }
         }
-        stage('Restore') {
-            steps {
-                // Restore dependencies
-                sh 'dotnet restore'
-            }
-        }
         stage('Build') {
             steps {
                 // Build the application
