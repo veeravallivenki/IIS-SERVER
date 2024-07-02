@@ -42,10 +42,10 @@ pipeline {
                     
                     Remove-PSDrive -Name X
                     '''
-                   }
-                }
-            }
-        }
-    }
-
+                 }
+             }
+          }
+      }
+   }
+}
 
