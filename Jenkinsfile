@@ -31,7 +31,7 @@ pipeline {
                     }
                 }
                 // Verify .NET SDK installation
-                sh 'dotnet --version'
+               
             }
         }
         stage('Restore') {
