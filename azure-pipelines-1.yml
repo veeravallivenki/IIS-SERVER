@@ -21,6 +21,19 @@ steps:
     projects: '**/*.csproj'
     workingDirectory: '$(System.DefaultWorkingDirectory)'
 
+- task: CopyFiles@2
+  inputs:
+    contents: '**/bin/$(buildConfiguration)/**'
+    targetFolder: '$(Build.ArtifactStagingDirectory)'
+
+- task: ArchiveFiles@2
+  inputs:
+    rootFolderOrFile: '$(Build.ArtifactStagingDirectory)'
+    includeRootFolder: false
+    archiveType: 'zip'
+    archiveFile: '$(Build.ArtifactStagingDirectory)/output.zip'
+    replaceExistingArchive: true
+
 - task: PublishBuildArtifacts@1
   inputs:
     PathtoPublish: '$(Build.ArtifactStagingDirectory)'
@@ -30,4 +43,4 @@ steps:
   inputs:
     WebSiteName: 'dotnetapp'
     VirtualApplication: 'd'
-    Package: '$(System.DefaultWorkingDirectory)\**\*.zip'
+    Package: '$(Build.ArtifactStagingDirectory)/output.zip'
