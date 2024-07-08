@@ -22,13 +22,3 @@ steps:
     workingDirectory: '$(System.DefaultWorkingDirectory)'
 
 - task: PublishBuildArtifacts@1
-  inputs:
-    PathtoPublish: '$(Build.ArtifactStagingDirectory)'
-    ArtifactName: 'drop'
-    publishLocation: 'Container'
-
-- task: IISWebAppDeploymentOnMachineGroup@0
-  inputs:
-    WebSiteName: 'coreapp'
-    VirtualApplication: 'coreapp'
-    Package: '$(System.DefaultWorkingDirectory)\**\*.zip'
