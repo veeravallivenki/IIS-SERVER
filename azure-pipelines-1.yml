@@ -21,26 +21,8 @@ steps:
     projects: '**/*.csproj'
     workingDirectory: '$(System.DefaultWorkingDirectory)'
 
-- task: CopyFiles@2
-  inputs:
-    contents: '**/bin/$(buildConfiguration)/**'
-    targetFolder: '$(Build.ArtifactStagingDirectory)'
-
-- task: ArchiveFiles@2
-  inputs:
-    rootFolderOrFile: '$(Build.ArtifactStagingDirectory)'
-    includeRootFolder: false
-    archiveType: 'zip'
-    archiveFile: '$(Build.ArtifactStagingDirectory)/output.zip'
-    replaceExistingArchive: true
-
 - task: PublishBuildArtifacts@1
   inputs:
     PathtoPublish: '$(Build.ArtifactStagingDirectory)'
     ArtifactName: 'drop'
 
-- task: IISWebAppDeploymentOnMachineGroup@0
-  inputs:
-    WebSiteName: 'dotnetapp'
-    VirtualApplication: 'd'
-    Package: '$(Build.ArtifactStagingDirectory)/output.zip'
