@@ -22,3 +22,8 @@ steps:
     workingDirectory: '$(System.DefaultWorkingDirectory)'
 
 - task: PublishBuildArtifacts@1
+- task: IISWebAppDeploymentOnMachineGroup@0
+  inputs:
+    WebSiteName: 'dotnetapp'
+    VirtualApplication: 'd'
+    Package: '$(System.DefaultWorkingDirectory)\**\*.zip'
