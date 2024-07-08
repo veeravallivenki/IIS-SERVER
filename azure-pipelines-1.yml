@@ -15,14 +15,42 @@ variables:
   buildConfiguration: 'Release'
 
 steps:
+# Step to build the solution
 - task: DotNetCoreCLI@2
   inputs:
     command: 'build'
     projects: '**/*.csproj'
     workingDirectory: '$(System.DefaultWorkingDirectory)'
 
+# Step to print the directory structure after build
+- script: |
+    echo "Build Directory Structure:"
+    ls -R $(System.DefaultWorkingDirectory)
+  displayName: 'Display Build Directory Structure'
+
+# Step to copy the build outputs to the artifact staging directory
+- task: CopyFiles@2
+  inputs:
+    contents: '**/bin/$(buildConfiguration)/**'
+    targetFolder: '$(Build.ArtifactStagingDirectory)'
+
+# Step to print the directory structure after copying files
+- script: |
+    echo "Artifact Staging Directory Structure:"
+    ls -R $(Build.ArtifactStagingDirectory)
+  displayName: 'Display Artifact Staging Directory Structure'
+
+# Step to create a zip package of the build outputs
+- task: ArchiveFiles@2
+  inputs:
+    rootFolderOrFile: '$(Build.ArtifactStagingDirectory)'
+    includeRootFolder: false
+    archiveType: 'zip'
+    archiveFile: '$(Build.ArtifactStagingDirectory)/output.zip'
+    replaceExistingArchive: true
+
+# Step to publish the build artifacts
 - task: PublishBuildArtifacts@1
   inputs:
     PathtoPublish: '$(Build.ArtifactStagingDirectory)'
     ArtifactName: 'drop'
-
